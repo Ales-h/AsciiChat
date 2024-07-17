@@ -7,8 +7,6 @@ using tcp = boost::asio::ip::tcp;
 
 wsSession::wsSession(tcp::socket&& socket, std::shared_ptr<shared_state> _state):ws(std::move(socket)), state(_state){
 
-        state->join(this);
-
          ws.set_option(boost::beast::websocket::stream_base::decorator(
         [](boost::beast::websocket::response_type& res) {
             res.set(boost::beast::http::field::server, "wsServer");
@@ -17,10 +15,11 @@ wsSession::wsSession(tcp::socket&& socket, std::shared_ptr<shared_state> _state)
         }
 
 wsSession::~wsSession(){
-    //state->leave(this);
+    
 }
 
 void wsSession::run(){
+        state->join(shared_from_this());
         ws.async_accept([self{shared_from_this()}](boost::beast::error_code ec){
 
             if(ec) {
@@ -29,16 +28,21 @@ void wsSession::run(){
             }
 
             self->echo();
+            
+            
         });
+            
+        //ws.close(boost::beast::websocket::close_code::normal);
     }
 
 void wsSession::echo(){
         ws.async_read(buffer, [self{shared_from_this()}, this](boost::beast::error_code ec, std::size_t byte_transfered){
-            if(ec == boost::beast::websocket::error::closed) { 
-                state->leave(this);
-                return; }
+            
             if(ec) {
+                 if(ec == boost::beast::websocket::error::closed || ec == boost::asio::error::eof) { 
+                state->leave(shared_from_this());} else {
                 std::cerr << "echo Error in wsSession: " << ec << ec.message() << std::endl;
+                }
                 return;
             }
             std::string output = boost::beast::buffers_to_string(self->buffer.data());
@@ -46,10 +50,13 @@ void wsSession::echo(){
             self->state->send(output);
 
             self->buffer.consume(self->buffer.size());
-
+            if(!ec) {
             self->echo();
-        
+            }
         });
+
+       
+        
     }
 
 
@@ -80,8 +87,7 @@ void wsSession::on_write(boost::beast::error_code ec, std::size_t) {
 
     // Remove the string from the queue
     queue.erase(queue.begin());
-    std::cout << "on write" << std::endl;
-    // Send the next message if any
+    // Send the next message
     if(! queue.empty())
         ws.async_write(
             boost::asio::buffer(*queue.front()),

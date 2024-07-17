@@ -22,7 +22,7 @@ int main(int argc, char** argv) { // args: ip-address, port
    
     boost::asio::ip::address const address = boost::asio::ip::make_address(argv[1]);
     unsigned short const port = static_cast<unsigned short>(std::atoi(argv[2]));   
-    int threads = 4;
+    int threads = 1;
 
     boost::asio::io_context ioc{threads};
 

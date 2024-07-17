@@ -16,12 +16,12 @@ class wsSession;
 
 class shared_state {
     std::mutex mutex;
-    std::unordered_set<wsSession*> sessions;
+    std::unordered_set<std::shared_ptr<wsSession>> sessions;
 
     public:
     shared_state();
-    void join(wsSession* session);
-    void leave(wsSession* session);
+    void join(std::shared_ptr<wsSession> session);
+    void leave(std::shared_ptr<wsSession> session);
     void send(std::string message);
 };
 
