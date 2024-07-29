@@ -1,0 +1,4 @@
+{
+    "C_Cpp.intelliSenseEngine": "default",  // or "Tag Parser" to disable the IntelliSense engine
+    "C_Cpp.intelliSenseEngineFallback": "enabled"
+  }

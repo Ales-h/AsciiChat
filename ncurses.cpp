@@ -10,6 +10,7 @@ int xmax;
 int chatwinx;
 int chatwiny;
 WINDOW *win;
+WINDOW *upwin;
 std::vector<std::string> asciiArt = {
         "            ___     ___     ___     ___     ___             ___    _  _     ___    _____  ",
         "    o O O  /   \\   / __|   / __|   |_ _|   |_ _|           / __|  | || |   /   \\  |_   _| ",
@@ -27,6 +28,20 @@ void draw_chat()
     wattron(win, A_BOLD);
     mvwprintw(win, 0, 1, "CHAT");
     wattroff(win, A_BOLD);
+}
+
+void draw_upwin()
+{
+werase(upwin);
+wattron(upwin, A_BOLD);
+    for (int i = 0; i < asciiArt.size(); ++i){
+        mvwprintw(upwin, i+2, 1, "%s", asciiArt[i].c_str());
+    }
+wattroff(upwin, A_BOLD);
+
+box(upwin, 0, 0);
+wrefresh(upwin);
+
 }
 
 
@@ -145,10 +160,6 @@ class ChatWindow {
 
 };
 
-
-
-
-
 int main() {
     //INIT NCURSES
     setlocale(LC_ALL, "");
@@ -161,7 +172,7 @@ int main() {
     chatwinx =  0.75*(xmax-5);
     chatwiny = 0.8*(ymax-9);
     win = newwin(chatwiny, chatwinx, 10, 5);
-    WINDOW *upwin = newwin(9, 100, 0, 0);
+    upwin = newwin(9, 92, 0, 0);
     keypad(win, TRUE); 
     ChatWindow chatwin(win);
     int f = 0;
@@ -244,6 +255,7 @@ int main() {
                     maxchar = chatwinx - 3;
                     currentchar = prefix + 1 + ch%(maxchar - prefix - 1);
                     lineoffset = ch/(maxchar - prefix-1);
+                    draw_upwin();
             } else if (c == 127) {
                 if(input.length() == 0 || currentchar == prefix + 1){
                 // do nothing because there is nothing to delete
@@ -287,21 +299,12 @@ int main() {
             wclrtoeol(win);
             int startidx = i * (maxchar - prefix - 1);
             int endidx = std::min(startidx + maxchar-prefix - 1 , static_cast<int>(input.length()));
-            tmp.push_back(startidx);
-            tmp.push_back(endidx);
             try{
             wprintw(win, "%s", input.substr(startidx, endidx-startidx).c_str());
                 } catch(std::exception const& ec){
                     std::cerr << "substringing" << ec.what() << std::endl;
                 }
         }
-        tmp.push_back(lineoffset);
-        tmp.push_back(maxchar-prefix);
-        tmp.push_back(static_cast<int>(input.length()));
-        tmp.push_back(currentchar);
-        tmp.push_back(chatwin.currentline);
-        tmp.push_back(chatwin.messages.size());
-        tmp.push_back(f);
         for(int j = 0; j < tmp.size(); ++j){
             wmove(upwin, 1, 10+(j*5));
             wprintw(upwin, "%d", tmp[j]);
@@ -314,7 +317,6 @@ int main() {
         wrefresh(win); 
         wmove(win, chatwin.currentline, 0);
         wclrtoeol(win);
-        //draw_chat(win);
         if(input.length()>0){
         chatwin.writeline(input, username, 1);
         }
