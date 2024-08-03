@@ -1,5 +1,8 @@
-g++ -I /usr/include/boost/ -std=c++17 wsSession.cpp shared_state.cpp listener.cpp wsServer.cpp -o wsServer
+g++ -I /usr/include/boost/ -std=c++17 wsSession.cpp shared_state.cpp Listener.cpp wsServer.cpp -o wsServer
 
 g++ -I /usr/include/boost/ -lncurses -std=c++17 wsClient.cpp -o wsClient
 
 g++ -L/usr/local/opt/ncurses/lib -I/usr/local/opt/ncurses/include -lncurses -std=c++17 ncurses.cpp -o ncurses
+
+
+g++ -I /usr/include/boost/ -L/usr/local/opt/ncurses/lib -I/usr/local/opt/ncurses/include -lncurses -std=c++17 wsClient.cpp -o wsClient
